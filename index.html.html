@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teste: foto + legenda no WhatsApp</title>
+<style>
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:14px;background:#f4f7f4;color:#1b2b1b}
+h1{font-size:18px;margin:0 0 4px}
+p{font-size:14px;margin:6px 0}
+.card{background:#fff;border-radius:12px;padding:12px;margin:12px 0;box-shadow:0 1px 3px #0002}
+img{width:100%;max-height:260px;object-fit:cover;border-radius:8px}
+textarea{width:100%;box-sizing:border-box;font:16px inherit;padding:8px;border:1px solid #bbb;border-radius:8px;min-height:64px}
+button{font-size:16px;padding:12px;border:0;border-radius:10px;background:#1f7a3a;color:#fff;width:100%;margin-top:8px}
+button.sec{background:#e3ece3;color:#1b2b1b}
+label.pick{display:block;text-align:center;padding:14px;border:2px dashed #1f7a3a;border-radius:10px;font-size:16px}
+#log{font:12px monospace;white-space:pre-wrap;background:#111;color:#9f9;padding:10px;border-radius:8px}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<h1>🌿 Teste: foto + legenda no WhatsApp</h1>
+<p>1) Escolha 1 ou mais fotos da galeria. 2) Ajuste a legenda. 3) Toque em Compartilhar e escolha o WhatsApp e um contato (pode ser você mesmo). 4) Veja se a legenda chegou <b>embaixo da foto</b>.</p>
+
+<label class="pick">📷 Escolher fotos<input id="f" type="file" accept="image/*" multiple></label>
+<div id="itens"></div>
+<div id="todas" style="display:none" class="card">
+  <p><b>Teste extra:</b> todas as fotos de uma vez (o compartilhamento aceita um texto só).</p>
+  <textarea id="txtTodas">Teste com várias fotos</textarea>
+  <button id="bTodas">Compartilhar todas juntas</button>
+</div>
+<div class="card"><b>Diagnóstico</b><div id="log"></div></div>
+
+<script>
+var L=document.getElementById('log');
+function log(m){L.textContent+=m+'\n'}
+log('Navegador: '+navigator.userAgent);
+log('navigator.share: '+(!!navigator.share));
+log('navigator.canShare: '+(!!navigator.canShare));
+log('Em iframe: '+(window.self!==window.top));
+var arqs=[];
+document.getElementById('f').addEventListener('change',function(e){
+  arqs=Array.prototype.slice.call(e.target.files);
+  var box=document.getElementById('itens'); box.innerHTML='';
+  arqs.forEach(function(a,i){
+    var c=document.createElement('div'); c.className='card';
+    var im=document.createElement('img'); im.src=URL.createObjectURL(a);
+    var t=document.createElement('textarea'); t.id='t'+i;
+    t.value='Peixinho Pt11 com 10\n10 caixas disponível';
+    var b=document.createElement('button'); b.textContent='Compartilhar esta foto com legenda';
+    b.onclick=function(){enviar([a],t.value,'item '+(i+1))};
+    var cp=document.createElement('button'); cp.className='sec'; cp.textContent='Copiar só a legenda';
+    cp.onclick=function(){navigator.clipboard.writeText(t.value).then(function(){log('Legenda copiada')},function(x){log('Cópia falhou: '+x)})};
+    c.appendChild(im);c.appendChild(t);c.appendChild(b);c.appendChild(cp);box.appendChild(c);
+    log('Foto '+(i+1)+': '+a.name+' | '+a.type+' | '+Math.round(a.size/1024)+' KB');
+  });
+  document.getElementById('todas').style.display=arqs.length>1?'block':'none';
+});
+document.getElementById('bTodas').onclick=function(){enviar(arqs,document.getElementById('txtTodas').value,'todas')};
+function enviar(files,texto,rot){
+  var dados={files:files,text:texto};
+  var ok=navigator.canShare?navigator.canShare({files:files}):false;
+  log('['+rot+'] canShare(files)='+ok);
+  if(!navigator.share){log('navigator.share indisponível');return}
+  navigator.share(dados).then(function(){log('['+rot+'] compartilhamento concluído (sem erro)')},
+    function(err){log('['+rot+'] erro: '+err.name+' - '+err.message)});
+}
+</script>
+</body>
+</html>
